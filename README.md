@@ -1,0 +1,2 @@
+# BMSTU
+For university
