@@ -1,0 +1,132 @@
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <vector>
+
+using namespace std;
+
+struct CRYPTO_TOOL 
+{
+    string Developer;
+    string Version;
+    string Algorithm;
+    int HasLicense;
+};
+
+void print_tools(ostream & out, vector<CRYPTO_TOOL> & Tools)
+{
+    for (int i = 0; i < Tools.size(); i++)
+    {
+        out << "Разработчик: " << Tools[i].Developer 
+            << ", Версия: " << Tools[i].Version 
+            << ", Алгоритм: " << Tools[i].Algorithm 
+            << ", Лицензия ФСБ: " << (Tools[i].HasLicense ? "да" : "нет") << endl;
+    }
+}
+
+int main(int argc, const char* argv[]) {
+    setlocale(LC_ALL, "Russian");
+    if (argc != 4) {
+        cerr << "Error: Use four parameters\n";
+        return 67;
+    }
+
+    const string mode = argv[1];
+    const string open_mode = argv[2];
+    const string file_name = argv[3];
+
+    int n;
+    vector<CRYPTO_TOOL> Tools;
+
+    if (mode == "write") { 
+        cout << "n="; 
+        cin >> n; 
+        Tools.resize(n); 
+
+        for (int i = 0; i < n; i++) 
+        {
+            cout << "Crypto Tool N=" << (i + 1) << endl;
+            
+            cout << "Developer: ";
+            cin.ignore();
+            getline(cin, Tools[i].Developer);
+            
+            cout << "Version: ";
+            getline(cin, Tools[i].Version);
+            
+            cout << "Algorithm: ";
+            getline(cin, Tools[i].Algorithm);
+            
+            cout << "Has FSB License (1 - yes, 0 - no): "; 
+            cin >> Tools[i].HasLicense;
+        }
+
+        if (open_mode == "text")
+        {
+            ofstream foutt(file_name);
+            foutt << n << endl; 
+            for (int i = 0; i < Tools.size(); i++) {
+                foutt << Tools[i].Developer << endl 
+                      << Tools[i].Version << endl 
+                      << Tools[i].Algorithm << endl;
+                foutt << Tools[i].HasLicense << endl; 
+            }
+            foutt.close();
+        }
+        else if (open_mode == "binary")
+        {
+            ofstream foutb(file_name, ios::binary);
+            foutb.write((char *)&n, sizeof(n)); 
+            for (int i = 0; i < Tools.size(); i++) {
+                foutb << Tools[i].Developer << ends 
+                      << Tools[i].Version << ends 
+                      << Tools[i].Algorithm << ends; 
+                foutb.write((char *)&Tools[i].HasLicense, sizeof(Tools[i].HasLicense));
+            }
+            foutb.close();
+        }
+    }
+    else if (mode == "read") {
+        if (open_mode == "text")
+        {
+            ifstream fint(file_name);
+            if (!fint) 
+            {
+                cout << endl << "Error, file not found" << endl;
+                return 1;
+            }
+            fint >> n; 
+            Tools.resize(n); 
+            for (int i = 0; i < Tools.size(); i++) {
+                fint.ignore(2, '\n');
+                getline(fint, Tools[i].Developer); 
+                getline(fint, Tools[i].Version);
+                getline(fint, Tools[i].Algorithm);
+                fint >> Tools[i].HasLicense;
+            }
+            fint.close();
+        }
+        else if (open_mode == "binary")
+        {
+            ifstream finb(file_name, ios::binary);
+            if (!finb) 
+            {
+                cout << endl << "Error, file not found" << endl;
+                return 1;
+            }
+            finb.read((char *)&n, sizeof(n)); 
+            Tools.resize(n); 
+            for (int i = 0; i < Tools.size(); i++) {
+                getline(finb, Tools[i].Developer, '\0'); 
+                getline(finb, Tools[i].Version, '\0');
+                getline(finb, Tools[i].Algorithm, '\0');
+                finb.read((char *)&Tools[i].HasLicense, sizeof(Tools[i].HasLicense));
+            }
+            finb.close();
+        }
+        
+        print_tools(cout, Tools);
+    }
+    
+    return 0;
+}
